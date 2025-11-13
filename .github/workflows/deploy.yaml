@@ -42,7 +42,6 @@ jobs:
       run: |
         gcloud components install gke-gcloud-auth-plugin --quiet
 
-
     - name: Configure Docker
       run: |
         gcloud auth configure-docker asia-south1-docker.pkg.dev
