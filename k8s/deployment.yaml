@@ -1,4 +1,4 @@
-# k8s/deployment.yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,7 +13,7 @@ spec:
       labels:
         app: product-api
     spec:
-      serviceAccountName: product-api-ksa  # Changed from product-api-sa
+      serviceAccountName: product-api-ksa  
       containers:
       - name: product-api
         image: asia-south1-docker.pkg.dev/oceanic-spot-477008-k6/my-flask-repo/product-api:v8

@@ -1,5 +1,4 @@
 
-# --- 1. PROVISION THE POSTGRES INSTANCE WITH BOTH PUBLIC AND PRIVATE IP ---
 resource "google_sql_database_instance" "primary" {
   provider = google
   name     = "product-api-db-instance"
@@ -9,27 +8,26 @@ resource "google_sql_database_instance" "primary" {
   settings {
     tier = "db-f1-micro"
     ip_configuration {
-      ipv4_enabled    = true # Enable public IP
+      ipv4_enabled    = true 
       authorized_networks {
         name  = "allow-all"
-        value = "0.0.0.0/0" # Allow all IPs for testing (not secure for prod)
+        value = "0.0.0.0/0" 
       }
-      # Uncomment below to also enable private IP (optional, for GKE private networking)
-      # private_network = "projects/oceanic-spot-477008-k6/global/networks/default"
+      
     }
   }
   deletion_protection = false
 }
 
-# --- 2. CREATE THE DATABASE USER ---
+
 resource "google_sql_user" "default_user" {
   provider = google
   name     = "postgres"
   instance = google_sql_database_instance.primary.name
-  password = "Kirti#13" # 👈 Set your password
+  password = "Kirti#13" 
 }
 
-# --- 3. OUTPUTS ---
+
 output "db_instance_connection_name" {
   value = google_sql_database_instance.primary.connection_name
   description = "The connection name for the Cloud SQL instance."

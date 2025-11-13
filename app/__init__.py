@@ -12,13 +12,12 @@ load_dotenv(dotenv_path)
 db = SQLAlchemy()
 migrate = Migrate()
 
-# Initialize the Cloud SQL Connector
+
 connector = Connector()
 
-# Function to return the database connection
 def getconn():
     conn = connector.connect(
-        os.environ["INSTANCE_CONNECTION_NAME"], # e.g., "my-project:us-central1:my-instance"
+        os.environ["INSTANCE_CONNECTION_NAME"], 
         "pg8000",
         user=os.environ["DB_USER"],
         password=os.environ["DB_PASSWORD"],
@@ -29,20 +28,17 @@ def getconn():
 def create_app():
     app = Flask(__name__)
 
-    # --- THIS IS THE CORRECT FIX ---
-    # We set a dummy URI (it can be anything)
     app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+pg8000://"
 
-    # We pass the 'getconn' function to the 'creator'
-    # using SQLALCHEMY_ENGINE_OPTIONS
+    
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "creator": getconn
     }
-    # -------------------------------
+    
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # Load admin secret from .env
+    
     app.config["ADMIN_SECRET"] = os.getenv("ADMIN_TOKEN")
 
     db.init_app(app)

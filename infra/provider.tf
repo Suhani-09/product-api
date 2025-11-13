@@ -1,4 +1,4 @@
-# Set up the Terraform provider for Google Cloud
+
 terraform {
   required_providers {
     google = {
@@ -8,7 +8,6 @@ terraform {
   }
 }
 
-# Configure the Google Cloud provider
 provider "google" {
   project = "oceanic-spot-477008-k6"
   region  = "asia-south1"
