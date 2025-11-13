@@ -1,0 +1,114 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GKE_CLUSTER: ${{ secrets.GKE_CLUSTER_NAME }}
+  GKE_ZONE: ${{ secrets.GKE_ZONE }}
+  DEPLOYMENT_NAME: product-api-deployment
+  IMAGE_NAME: product-api
+  ARTIFACT_REGISTRY: ${{ secrets.ARTIFACT_REGISTRY }}
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    
+    - name: Set up Google Cloud auth
+      env:
+        GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      run: |
+       echo "$GCP_SA_KEY" | base64 --decode > "${HOME}/gcp-key.json"
+       gcloud auth activate-service-account --key-file="${HOME}/gcp-key.json"
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+
+    - name: Get GKE Credentials
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER \
+          --region $GKE_ZONE \
+          --project $PROJECT_ID
+
+
+    - name: Build Docker Image
+      run: |
+        docker build \
+          --tag "$ARTIFACT_REGISTRY/$IMAGE_NAME:$GITHUB_SHA" \
+          --tag "$ARTIFACT_REGISTRY/$IMAGE_NAME:latest" \
+          .
+
+    - name: Push Docker Image
+      run: |
+        docker push "$ARTIFACT_REGISTRY/$IMAGE_NAME:$GITHUB_SHA"
+        docker push "$ARTIFACT_REGISTRY/$IMAGE_NAME:latest"
+
+
+    - name: Deploy to GKE
+      run: |
+        kubectl set image deployment/$DEPLOYMENT_NAME \
+          $product-api=$ARTIFACT_REGISTRY/$IMAGE_NAME:$GITHUB_SHA
+        
+        # Wait for rollout to complete
+        kubectl rollout status deployment/$DEPLOYMENT_NAME
+        
+        # Verify deployment
+        kubectl get services -o wide
+
+
+    - name: Run Health Check
+      run: |
+        # Wait for service to be ready
+        sleep 30
+        
+        # Get LoadBalancer IP
+        EXTERNAL_IP=$(kubectl get service product-api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        
+        # Test the API
+        echo "Testing API at http://$EXTERNAL_IP/products"
+        curl -f http://$EXTERNAL_IP/products || exit 1
+        
+        echo " Health check passed!"
+  
+  
+    - name: Run Integration Tests
+      run: |
+        # Install test dependencies
+        pip install requests
+        
+        # Get LoadBalancer IP
+        export API_BASE_URL=http://$(kubectl get service product-api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+        
+        # Run tests
+        python tests/integration_test.py
+
+    - name: Deployment Summary
+      run: |
+        echo " Deployment completed successfully!"
+        echo " Image: $ARTIFACT_REGISTRY/$IMAGE_NAME:$GITHUB_SHA"
+        echo " Cluster: $GKE_CLUSTER"
+        echo " Zone: $GKE_ZONE"
+        
+        # Show pod status
+        kubectl get pods -l app=product-api
