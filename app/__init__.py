@@ -1,7 +1,7 @@
 from flask import Flask, request, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Histogram
 import os
 import json
 import time
@@ -13,7 +13,6 @@ load_dotenv(dotenv_path)
 
 db = SQLAlchemy()
 migrate = Migrate()
-
 
 class StructuredLogger:
     @staticmethod
@@ -29,7 +28,6 @@ class StructuredLogger:
 
 logger = StructuredLogger()
 
-
 REQUEST_COUNT = Counter(
     'http_requests_total',
     'Total HTTP requests',
@@ -42,11 +40,9 @@ REQUEST_LATENCY = Histogram(
     ['method', 'endpoint']
 )
 
-
 def create_app():
     app = Flask(__name__)
 
-    
     db_user = os.environ.get("DB_USER", "postgres")
     db_password = os.environ.get("DB_PASSWORD")
     db_name = os.environ.get("DB_NAME", "products")
@@ -64,7 +60,6 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
-
 
     @app.before_request
     def before_request():
@@ -97,20 +92,6 @@ def create_app():
                        latency_ms=round(latency * 1000, 2))
 
         return response
-
-
-    @app.route('/health')
-    def health():
-        try:
-            db.session.execute('SELECT 1')
-            return {'status': 'healthy', 'database': 'connected'}, 200
-        except Exception as e:
-            logger.log('ERROR', 'Health check failed', error=str(e))
-            return {'status': 'unhealthy', 'database': 'disconnected'}, 503
-
-    @app.route('/metrics')
-    def metrics():
-        return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
     from .routes import bp as routes_bp
     app.register_blueprint(routes_bp)

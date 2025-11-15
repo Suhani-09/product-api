@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, redirect, url_for
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from .models import Product
 from . import db, logger  
 import os
@@ -15,6 +16,19 @@ def product_to_dict(p):
         "created_at": p.created_at.isoformat() if p.created_at else None,
         "updated_at": p.updated_at.isoformat() if p.updated_at else None,
     }
+
+@bp.route('/health')
+def health():
+    try:
+        db.session.execute('SELECT 1')
+        return {'status': 'healthy', 'database': 'connected'}, 200
+    except Exception as e:
+        logger.log('ERROR', 'Health check failed', error=str(e))
+        return {'status': 'unhealthy', 'database': 'disconnected'}, 503
+
+@bp.route('/metrics')
+def metrics():
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 @bp.route("/products", methods=["GET"])
 def get_products():
