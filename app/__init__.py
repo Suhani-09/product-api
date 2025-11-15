@@ -1,7 +1,6 @@
 from flask import Flask, request, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from google.cloud.sql.connector import Connector
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 import os
 import json
@@ -14,7 +13,6 @@ load_dotenv(dotenv_path)
 
 db = SQLAlchemy()
 migrate = Migrate()
-connector = Connector()
 
 
 class StructuredLogger:
@@ -45,25 +43,21 @@ REQUEST_LATENCY = Histogram(
 )
 
 
-def getconn():
-    logger.log('INFO', 'Establishing database connection')
-    conn = connector.connect(
-        os.environ["INSTANCE_CONNECTION_NAME"], 
-        "pg8000",
-        user=os.environ["DB_USER"],
-        password=os.environ["DB_PASSWORD"],
-        db=os.environ["DB_NAME"]
-    )
-    return conn
-
-
 def create_app():
     app = Flask(__name__)
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql+pg8000://"
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "creator": getconn
-    }
+    
+    db_user = os.environ.get("DB_USER", "postgres")
+    db_password = os.environ.get("DB_PASSWORD")
+    db_name = os.environ.get("DB_NAME", "products")
+    db_host = os.environ.get("DB_HOST", "localhost") 
+    
+    logger.log('INFO', 'Establishing database connection',
+               host=db_host, database=db_name, user=db_user)
+    
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        f"postgresql+pg8000://{db_user}:{db_password}@{db_host}:5432/{db_name}"
+    )
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["ADMIN_SECRET"] = os.getenv("ADMIN_TOKEN")
     app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
@@ -79,29 +73,29 @@ def create_app():
                    method=request.method,
                    path=request.path,
                    remote_addr=request.remote_addr)
-    
+
     @app.after_request
     def after_request(response):
         if hasattr(g, 'start_time'):
             latency = time.time() - g.start_time
-            
+
             REQUEST_COUNT.labels(
                 method=request.method,
                 endpoint=request.endpoint or 'unknown',
                 status=response.status_code
             ).inc()
-            
+
             REQUEST_LATENCY.labels(
                 method=request.method,
                 endpoint=request.endpoint or 'unknown'
             ).observe(latency)
-            
+
             logger.log('INFO', 'Request completed',
                        method=request.method,
                        path=request.path,
                        status=response.status_code,
                        latency_ms=round(latency * 1000, 2))
-        
+
         return response
 
 
@@ -110,9 +104,10 @@ def create_app():
         try:
             db.session.execute('SELECT 1')
             return {'status': 'healthy', 'database': 'connected'}, 200
-        except:
+        except Exception as e:
+            logger.log('ERROR', 'Health check failed', error=str(e))
             return {'status': 'unhealthy', 'database': 'disconnected'}, 503
-    
+
     @app.route('/metrics')
     def metrics():
         return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
@@ -121,5 +116,5 @@ def create_app():
     app.register_blueprint(routes_bp)
 
     logger.log('INFO', 'Application initialized')
-    
+
     return app
