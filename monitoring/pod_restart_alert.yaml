@@ -1,0 +1,16 @@
+displayName: "Pod Restart Alert"
+combiner: OR
+conditions:
+  - displayName: "Pod restarts > 3"
+    conditionThreshold:
+      filter: 'resource.type="k8s_container" AND resource.labels.cluster_name="my-app-cluster" AND metric.type="kubernetes.io/container/restart_count"'
+      comparison: COMPARISON_GT
+      thresholdValue: 3
+      duration: 300s
+      aggregations:
+        - alignmentPeriod: 60s
+          perSeriesAligner: ALIGN_DELTA
+notificationChannels:
+  - projects/oceanic-spot-477008-k6/notificationChannels/4242450568794606929
+alertStrategy:
+  autoClose: 604800s

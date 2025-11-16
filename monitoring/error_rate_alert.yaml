@@ -1,0 +1,19 @@
+displayName: "High Error Rate Alert"
+combiner: OR
+conditions:
+  - displayName: "Error rate > 5%"
+    conditionThreshold:
+      filter: 'resource.type="https_lb_rule" AND metric.type="loadbalancing.googleapis.com/https/request_count" AND metric.labels.response_code_class="500"'
+      comparison: COMPARISON_GT
+      thresholdValue: 5
+      duration: 60s
+      aggregations:
+        - alignmentPeriod: 60s
+          perSeriesAligner: ALIGN_RATE
+          crossSeriesReducer: REDUCE_SUM
+          groupByFields:
+            - resource.url_map_name
+notificationChannels:
+  - projects/oceanic-spot-477008-k6/notificationChannels/4242450568794606929
+alertStrategy:
+  autoClose: 604800s

@@ -1,0 +1,15 @@
+displayName: "High CPU Usage Alert"
+combiner: OR
+conditions:
+  - displayName: "Pod CPU > 80%"
+    conditionThreshold:
+      filter: 'resource.type="k8s_container" AND resource.labels.cluster_name="my-app-cluster" AND metric.type="kubernetes.io/container/cpu/core_usage_time"'
+      comparison: COMPARISON_GT
+      thresholdValue: 0.8
+      duration: 300s
+      aggregations:
+        - alignmentPeriod: 60s
+          perSeriesAligner: ALIGN_RATE
+notificationChannels: []
+alertStrategy:
+  autoClose: 604800s

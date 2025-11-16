@@ -3,6 +3,7 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from .models import Product
 from . import db, logger  
 import os
+from .auth import require_api_key
 
 bp = Blueprint('api', __name__)
 
@@ -47,6 +48,7 @@ def get_product(product_id):
     return jsonify(product_to_dict(product)), 200
 
 @bp.route("/products", methods=["POST"])
+@require_api_key(permissions=['write']) 
 def create_product():
     data = request.json
     logger.log('INFO', 'Creating product', product_name=data.get('name'))
@@ -70,6 +72,7 @@ def create_product():
         return jsonify({"error": str(e)}), 400
 
 @bp.route("/products/<int:product_id>", methods=["PUT"])
+@require_api_key(permissions=['write'])
 def update_product(product_id):
     data = request.json
     logger.log('INFO', 'Updating product', product_id=product_id)
@@ -93,7 +96,8 @@ def update_product(product_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 400
 
-@bp.route("/products/<int:product_id>", methods=["DELETE"])
+@bp.route("/products/<int:product_id>", methods=["DELETE"])\
+@require_api_key(permissions=['delete'])
 def delete_product(product_id):
     logger.log('INFO', 'Deleting product', product_id=product_id)
     
