@@ -17,6 +17,7 @@ env:
   DEPLOYMENT_NAME: product-api-deployment
   IMAGE_NAME: product-api
   ARTIFACT_REGISTRY: ${{ secrets.ARTIFACT_REGISTRY }}
+  ADMIN_API_KEY: ${{ secrets.ADMIN_API_KEY }}
 
 jobs:
   setup-build-publish-deploy:
@@ -91,13 +92,13 @@ jobs:
   
     - name: Run Integration Tests
       run: |
-        # Install test dependencies
+        
         pip install requests
         
-        # Get LoadBalancer IP
+        
         export API_BASE_URL=http://$(kubectl get service product-api-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
         
-        # Run tests
+        
         python tests/integration_test.py
 
     - name: Deployment Summary

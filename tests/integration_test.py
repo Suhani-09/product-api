@@ -3,19 +3,24 @@ import os
 import sys
 
 def test_api_endpoints():
-    """Test API endpoints after deployment"""
-    
-    
     base_url = os.getenv('API_BASE_URL', 'http://34.93.29.106')
+    ADMIN_API_KEY = os.getenv('ADMIN_API_KEY')
+    
+    if not ADMIN_API_KEY:
+        print("Error: ADMIN_API_KEY environment variable not set")
+        sys.exit(1)
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'X-API-Key': ADMIN_API_KEY
+    }
     
     print(f"Testing API at: {base_url}")
-    
     
     print("\n✓ Testing GET /products...")
     response = requests.get(f"{base_url}/products")
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     print(f"  Response: {response.json()}")
-    
     
     print("\n✓ Testing POST /products...")
     new_product = {
@@ -24,29 +29,26 @@ def test_api_endpoints():
         "description": "Created by CI/CD pipeline",
         "quantity": 1
     }
-    response = requests.post(f"{base_url}/products", json=new_product)
+    response = requests.post(f"{base_url}/products", json=new_product, headers=headers)
     assert response.status_code == 201, f"Expected 201, got {response.status_code}"
     product_id = response.json().get('id')
     print(f"  Created product ID: {product_id}")
-    
     
     print(f"\n✓ Testing GET /products/{product_id}...")
     response = requests.get(f"{base_url}/products/{product_id}")
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     print(f"  Product: {response.json()}")
     
-    
     print(f"\n✓ Testing PUT /products/{product_id}...")
     updated_product = {
         "name": "Updated Test Product",
         "price": 149.99
     }
-    response = requests.put(f"{base_url}/products/{product_id}", json=updated_product)
+    response = requests.put(f"{base_url}/products/{product_id}", json=updated_product, headers=headers)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
-    
     print(f"\n✓ Testing DELETE /products/{product_id}...")
-    response = requests.delete(f"{base_url}/products/{product_id}")
+    response = requests.delete(f"{base_url}/products/{product_id}", headers=headers)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
     print("\n All tests passed!")
