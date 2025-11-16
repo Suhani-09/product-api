@@ -15,7 +15,7 @@ spec:
       serviceAccountName: product-api-ksa  
       containers:
       - name: product-api
-        image: asia-south1-docker.pkg.dev/oceanic-spot-477008-k6/my-flask-repo/product-api:v8
+        image: asia-south1-docker.pkg.dev/oceanic-spot-477008-k6/my-flask-repo/product-api:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
