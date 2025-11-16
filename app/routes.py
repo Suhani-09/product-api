@@ -96,7 +96,7 @@ def update_product(product_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 400
 
-@bp.route("/products/<int:product_id>", methods=["DELETE"])\
+@bp.route("/products/<int:product_id>", methods=["DELETE"])
 @require_api_key(permissions=['delete'])
 def delete_product(product_id):
     logger.log('INFO', 'Deleting product', product_id=product_id)
