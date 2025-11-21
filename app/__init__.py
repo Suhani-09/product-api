@@ -7,6 +7,8 @@ import json
 import time
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 dotenv_path = find_dotenv()
 load_dotenv(dotenv_path)
@@ -42,6 +44,15 @@ REQUEST_LATENCY = Histogram(
 
 def create_app():
     app = Flask(__name__)
+    
+    
+    limiter = Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=["200 per hour", "50 per minute"],
+        storage_uri="memory://"
+    )
+
 
     db_user = os.environ.get("DB_USER", "postgres")
     db_password = os.environ.get("DB_PASSWORD")
