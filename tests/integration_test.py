@@ -17,12 +17,12 @@ def test_api_endpoints():
     
     print(f"Testing API at: {base_url}")
     
-    print("\n✓ Testing GET /products...")
+    print("\n Testing GET /products.")
     response = requests.get(f"{base_url}/products")
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     print(f"  Response: {response.json()}")
     
-    print("\n✓ Testing POST /products...")
+    print("\n Testing POST /products.")
     new_product = {
         "name": "CI/CD Test Product",
         "price": 99.99,
@@ -34,12 +34,12 @@ def test_api_endpoints():
     product_id = response.json().get('id')
     print(f"  Created product ID: {product_id}")
     
-    print(f"\n✓ Testing GET /products/{product_id}...")
+    print(f"\n Testing GET /products/{product_id}...")
     response = requests.get(f"{base_url}/products/{product_id}")
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     print(f"  Product: {response.json()}")
     
-    print(f"\n✓ Testing PUT /products/{product_id}...")
+    print(f"\n Testing PUT /products/{product_id}...")
     updated_product = {
         "name": "Updated Test Product",
         "price": 149.99
@@ -47,7 +47,7 @@ def test_api_endpoints():
     response = requests.put(f"{base_url}/products/{product_id}", json=updated_product, headers=headers)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
-    print(f"\n✓ Testing DELETE /products/{product_id}...")
+    print(f"\n Testing DELETE /products/{product_id}...")
     response = requests.delete(f"{base_url}/products/{product_id}", headers=headers)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     

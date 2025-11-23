@@ -1,15 +1,8 @@
-# app/models.py
-"""
-This module defines the Product model for the Flask-SQLAlchemy ORM.
-"""
-
 from . import db
 from sqlalchemy.sql import func
 
 class Product(db.Model):
-    """
-    Represents a single product entry in the 'product' table.
-    """
+
     __tablename__ = "product"
 
     id = db.Column(db.Integer, primary_key=True)
