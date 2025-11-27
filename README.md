@@ -248,32 +248,6 @@ product-api/
 | Metrics          | Prometheus              |
 
 ---
-
-## Cost and Optimization
-
-**Estimated Monthly Cost**
-
-* GKE Cluster: 70–100 USD
-* Cloud SQL: 25–50 USD
-* Load Balancer: 18 USD
-* Monitoring and Logging: 5–10 USD
-* Total: ~120–180 USD per month
-
-**Optimization Recommendations**
-
-* Use preemptible nodes for non‑production
-* Enable cluster autoscaling
-* Set conservative resource requests/limits
-* Use smaller DB tier in development
-
----
-
-## License
-
-MIT License
-
----
-
 ## Contact
 
 Author: Suhani Kheterpal
