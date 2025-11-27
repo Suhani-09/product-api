@@ -19,7 +19,6 @@ A production-ready REST API built with Flask, deployed on Google Kubernetes Engi
 * Troubleshooting
 * Project Structure
 * Technologies Used
-* Cost and Optimization
 * Contact
 
 ---
@@ -119,11 +118,17 @@ Google Cloud Monitoring & Logging
 **Base URL**
 
 ```
-http://<LOAD_BALANCER_IP>
+http://34.93.29.106
 ```
 
 **Authentication**
-Send API key in header: `X-API-Key: <YOUR_API_KEY>`
+
+This API uses **API Key–based authentication** for security and role-based access.
+
+| Key Type | Access Level | Use Case |
+|-----------|---------------|----------|
+| **Admin Key** | Full access (read, write, delete) | For creating, updating, and deleting products |
+| **Read-Only Key** | View access only | For viewing products (GET endpoints) |
 
 **Endpoints**
 
