@@ -39,7 +39,7 @@ resource "google_sql_user" "default_user" {
   provider = google
   name     = "postgres"
   instance = google_sql_database_instance.primary.name
-  password = "Kirti#13" 
+  password = var.db_password
 }
 
 output "db_instance_connection_name" {

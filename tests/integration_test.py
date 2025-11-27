@@ -52,7 +52,7 @@ def test_api_endpoints():
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     
     print("\n All tests passed!")
-    return True
+    return True #action checkup
 
 if __name__ == "__main__":
     try:
