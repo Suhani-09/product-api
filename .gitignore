@@ -36,3 +36,5 @@ override.tf.json
 *_override.tf.json
 terraform.tfvars
 
+secret.yaml
+api-keys-secret.yaml
